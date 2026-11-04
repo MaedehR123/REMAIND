@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Taj Fencing Club – Membership Tracker</title>
+<style>
+:root{--bg:#0b0b0b;--card:#141414;--gold:#d4af37;--gold-h:#e6c547;--text:#f5f5f7;--muted:#8e8e93;--red:#ff453a;--yellow:#ffd60a;--green:#32d74b;--border:#222226;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+body{background:var(--bg);color:var(--text);padding:20px 16px 40px;max-width:680px;margin:0 auto;min-height:100vh}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:14px}
+h1{font-size:1.25rem;color:var(--gold);font-weight:700;letter-spacing:.3px}
+.btn{background:var(--gold);color:#000;border:none;padding:10px 16px;border-radius:10px;font-weight:700;cursor:pointer;font-size:.85rem}
+.btn:active{background:var(--gold-h)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
+.stat b{display:block;font-size:1.2rem}
+.stat span{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.form{background:var(--card);padding:18px;border-radius:14px;border:1px solid var(--gold);margin-bottom:16px;display:none}
+.form.on{display:block}
+label{font-size:.72rem;color:var(--muted);display:block;margin-bottom:4px}
+input,select{width:100%;padding:12px;margin-bottom:12px;background:#1c1c1e;border:1px solid #333;border-radius:8px;color:#fff;font-size:16px}
+input:focus,select:focus{border-color:var(--gold);outline:none}
+.row{display:flex;gap:8px}.row .btn{flex:1}
+.btn.ghost{background:#222;color:var(--text);border:1px solid var(--border)}
+.tabs{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px}
+.tab{background:var(--card);color:var(--muted);border:1px solid var(--border);padding:8px 12px;border-radius:8px;font-size:.8rem;cursor:pointer;white-space:nowrap}
+.tab.on{background:var(--gold);color:#000;font-weight:700;border-color:var(--gold)}
+.search{margin-bottom:14px}
+.card{background:var(--card);border-radius:12px;padding:14px 14px 14px 18px;margin-bottom:10px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;left:0;top:0;height:100%;width:4px;background:var(--c)}
+.red{--c:var(--red)}.yellow{--c:var(--yellow)}.green{--c:var(--green)}.grey{--c:#555}
+.info{min-width:0}
+.info h3{font-size:1rem;margin-bottom:2px;overflow-wrap:anywhere}
+.info p{font-size:.75rem;color:var(--muted)}
+.badge{display:inline-block;padding:3px 8px;border-radius:6px;font-size:.68rem;font-weight:700;margin-top:6px;color:#000;background:var(--c)}
+.badge.grey{color:#ddd}
+.type{display:inline-block;font-size:.65rem;color:var(--muted);margin-left:6px}
+.acts{display:flex;flex-direction:column;gap:6px}
+.act{background:#1c1c1e;border:1px solid var(--border);color:#fff;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:.75rem;white-space:nowrap}
+.act.renew{color:var(--green);border-color:#1b4d22}
+.act.del{color:var(--red);border-color:#522}
+.empty{text-align:center;color:var(--muted);margin-top:40px;font-size:.85rem}
+.backup{display:flex;gap:8px;margin-top:24px;padding-top:14px;border-top:1px solid var(--border)}
+.backup .act{flex:1;text-align:center}
+.note{font-size:.68rem;color:var(--muted);margin-top:10px;text-align:center}
+.ask{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}.ask.on{display:flex}.ask .box{background:var(--card);border:1px solid var(--gold);border-radius:14px;padding:20px;max-width:340px;width:100%}.ask p{margin-bottom:16px;font-size:.95rem}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--gold);color:#000;padding:10px 16px;border-radius:10px;font-weight:700;font-size:.85rem;opacity:0;pointer-events:none;transition:.2s;z-index:60}.toast.on{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>⚔️ Taj Fencing Club</h1>
+  <button class="btn" id="addBtn">+ Add Member</button>
+</header>
+
+<div class="stats">
+  <div class="stat"><b id="sRed">0</b><span>Action needed</span></div>
+  <div class="stat"><b id="sYellow">0</b><span>Within 3 weeks</span></div>
+  <div class="stat"><b id="sGreen">0</b><span>Active</span></div>
+</div>
+
+<div class="form" id="form">
+  <label>Full Name</label><input id="fName" placeholder="e.g. John Doe" autocomplete="off">
+  <label>Phone Number</label><input id="fPhone" type="tel" placeholder="e.g. 555-0192">
+  <label>Membership Type</label>
+  <select id="fType"><option value="Monthly">Contract · Pays Monthly</option><option value="Yearly">Contract · Pays Yearly</option><option value="NoContract">No Contract · Month to Month</option><option value="Inactive">Inactive / Dropped</option></select>
+  <label>Next Payment Due / Expiration Date</label><input id="fDate" type="date">
+  <div class="row"><button class="btn ghost" id="cancelBtn">Cancel</button><button class="btn" id="saveBtn">Save Member</button></div>
+</div>
+
+<input class="search" id="q" type="search" placeholder="Search by name or phone…" autocomplete="off">
+<div class="tabs" id="tabs">
+  <button class="tab on" data-f="all">All</button>
+  <button class="tab" data-f="Monthly">Contract · Monthly</button>
+  <button class="tab" data-f="Yearly">Contract · Yearly</button>
+  <button class="tab" data-f="NoContract">No Contract</button>
+  <button class="tab" data-f="Inactive">Inactive / Dropped</button>
+</div>
+
+<div id="list"></div>
+<div class="ask" id="ask"><div class="box"><p id="askMsg"></p><div class="row"><button class="btn ghost" id="askNo">Cancel</button><button class="btn" id="askYes" style="background:var(--red);color:#fff">OK</button></div></div></div>
+<div class="toast" id="toast"></div>
+<div class="ask" id="login" style="background:var(--bg)"><div class="box"><h1 style="margin-bottom:6px">⚔️ Taj Fencing Club</h1><p style="color:var(--muted);font-size:.8rem">Staff sign-in</p>
+<input id="lEmail" type="email" placeholder="Email" autocomplete="username"><input id="lPass" type="password" placeholder="Password" autocomplete="current-password">
+<p id="loginErr" style="color:var(--red);font-size:.8rem;margin:0 0 10px"></p><button class="btn" id="loginBtn" style="width:100%">Sign In</button></div></div>
+
+<div class="backup">
+  <button class="act" id="exportBtn">💾 Export Backup</button>
+  <button class="act" id="importBtn">📂 Import Backup</button>
+  <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+</div>
+<p class="note" id="note">Loading…</p>
+<button class="act" id="outBtn" style="display:none;margin:10px auto 0;width:100%">Sign out</button>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+// ===== PASTE YOUR FIREBASE CONFIG HERE (Firebase console > Project settings > Your apps > Web) =====
+var FIREBASE_CONFIG={apiKey:"PASTE",authDomain:"PASTE",projectId:"PASTE",appId:"PASTE"};
+// ===================================================================================================
+var configured=FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.apiKey.indexOf('PASTE')<0;
+var KEY='taj_members_v2'; try{localStorage.removeItem('taj_members')}catch(e){}
+var members=[], filter='all', editId=null;
+var $=function(id){return document.getElementById(id)};
+function toast(t){var e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){e.classList.remove('on')},2500)}
+function ask(msg,yes,fn){$('askMsg').textContent=msg;$('askYes').textContent=yes;$('ask').classList.add('on');$('askYes').onclick=function(){$('ask').classList.remove('on');fn()};$('askNo').onclick=function(){$('ask').classList.remove('on')}}
+function typeLabel(t){return{Monthly:'Contract · Pays Monthly',Yearly:'Contract · Pays Yearly',NoContract:'No Contract',Inactive:'Inactive / Dropped'}[t]||t}
+function valid(m){return m&&typeof m==='object'&&typeof m.name==='string'&&typeof m.date==='string'}
+try{var raw=JSON.parse(localStorage.getItem(KEY));if(Array.isArray(raw))members=raw.filter(valid)}catch(e){}
+var col=null,last={};
+function norm(m){return JSON.stringify([m.id,m.name,m.phone||'',m.type,m.date])}
+function persist(){
+  if(!configured){try{localStorage.setItem(KEY,JSON.stringify(members))}catch(e){}}
+  if(col){
+    var seen={};
+    members.forEach(function(m){seen[m.id]=1;if(last[m.id]!==norm(m)){last[m.id]=norm(m);col.doc(String(m.id)).set({id:m.id,name:m.name,phone:m.phone||'',type:m.type,date:m.date}).catch(function(){toast('Save failed. Check your connection.')})}});
+    Object.keys(last).forEach(function(id){if(!seen[id]){delete last[id];col.doc(id).delete().catch(function(){toast('Delete failed. Check your connection.')})}});
+  }
+  render();
+}
+function setMode(){$('note').textContent=col?'Synced: your list is saved online and appears on every staff device that signs in.':'Local mode: data is saved only in this browser. Use Export Backup to keep a copy.'}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function p2(n){return String(n).padStart(2,'0')}
+function fmt(d){return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
+function parse(s){var a=String(s).split('-').map(Number);return a.length===3&&!a.some(isNaN)?new Date(a[0],a[1]-1,a[2]):null}
+function today(){var t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate())}
+function addMonth(d,n){n=n||1;var day=d.getDate(),r=new Date(d.getFullYear(),d.getMonth()+n,1);r.setDate(Math.min(day,new Date(r.getFullYear(),r.getMonth()+1,0).getDate()));return r}
+function days(m){var d=parse(m.date);return d?Math.round((d-today())/864e5):null}
+function status(m){
+  var d=days(m);
+  if(m.type==='Inactive')return{c:'grey',t:'Inactive / Dropped',rank:3,d:d};
+  if(d===null)return{c:'red',t:'Invalid date',rank:0,d:-99999};
+  if(d<0)return{c:'red',t:'Expired '+Math.abs(d)+' day'+(Math.abs(d)===1?'':'s')+' ago',rank:0,d:d};
+  if(d===0)return{c:'red',t:'Expires today',rank:0,d:d};
+  if(d<=7)return{c:'red',t:'Due soon · '+d+' day'+(d===1?'':'s')+' left',rank:0,d:d};
+  if(d<=21)return{c:'yellow',t:'Expiring · '+d+' days left',rank:1,d:d};
+  return{c:'green',t:'Active · '+d+' days left',rank:2,d:d};
+}
+function openForm(m){
+  editId=m?m.id:null;
+  $('fName').value=m?m.name:'';$('fPhone').value=m&&m.phone?m.phone:'';
+  $('fType').value=m?m.type:'Monthly';$('fDate').value=m?m.date:'';
+  $('saveBtn').textContent=m?'Update Member':'Save Member';
+  $('form').classList.add('on');$('fName').focus();
+}
+function closeForm(){$('form').classList.remove('on');editId=null}
+$('addBtn').onclick=function(){$('form').classList.contains('on')?closeForm():openForm(null)};
+$('cancelBtn').onclick=closeForm;
+$('saveBtn').onclick=function(){
+  var name=$('fName').value.trim(),phone=$('fPhone').value.trim(),type=$('fType').value,date=$('fDate').value;
+  if(!name||!date){toast('Please enter a name and date.');return}
+  if(editId!==null){var m=members.find(function(x){return x.id===editId});if(m){m.name=name;m.phone=phone;m.type=type;m.date=date}}
+  else members.push({id:Date.now()+Math.floor(Math.random()*1000),name:name,phone:phone,type:type,date:date});
+  closeForm();persist();
+};
+$('q').oninput=render;
+$('tabs').onclick=function(e){var b=e.target.closest('.tab');if(!b)return;filter=b.dataset.f;[].forEach.call(document.querySelectorAll('.tab'),function(t){t.classList.toggle('on',t===b)});render()};
+$('list').onclick=function(e){
+  var b=e.target.closest('[data-a]');if(!b)return;
+  var id=Number(b.dataset.id),m=members.find(function(x){return x.id===id});if(!m)return;
+  if(b.dataset.a==='renew'){
+    var base=parse(m.date)||today();if(base<today()||m.type==='Inactive')base=today();
+    m.date=fmt(addMonth(base,m.type==='Yearly'?12:1));if(m.type==='Inactive')m.type='Monthly';persist();
+  }else if(b.dataset.a==='edit'){openForm(m);window.scrollTo({top:0,behavior:'smooth'})}
+  else if(b.dataset.a==='del'){ask('Delete '+m.name+' permanently?','Delete',function(){members=members.filter(function(x){return x.id!==id});persist();toast('Deleted')})}
+};
+function render(){
+  var q=$('q').value.toLowerCase().trim(),red=0,yel=0,grn=0;
+  members.forEach(function(m){var s=status(m);if(s.rank===0)red++;else if(s.rank===1)yel++;else if(s.rank===2)grn++});
+  $('sRed').textContent=red;$('sYellow').textContent=yel;$('sGreen').textContent=grn;
+  var rows=members.filter(function(m){
+    var hit=!q||m.name.toLowerCase().indexOf(q)>-1||String(m.phone||'').toLowerCase().indexOf(q)>-1;
+    return hit&&(filter==='all'||m.type===filter);
+  }).map(function(m){return{m:m,s:status(m)}}).sort(function(a,b){
+    return a.s.rank-b.s.rank||a.s.d-b.s.d||a.m.name.localeCompare(b.m.name);
+  });
+  if(!rows.length){$('list').innerHTML='<p class="empty">'+(members.length?'No members match.':'No members yet. Tap “+ Add Member” to start.')+'</p>';return}
+  $('list').innerHTML=rows.map(function(r){var m=r.m,s=r.s;return '<div class="card '+s.c+'"><div class="info"><h3>'+esc(m.name)+'<span class="type">'+esc(typeLabel(m.type))+'</span></h3><p>'+(m.phone?esc(m.phone)+' · ':'')+'Exp: '+esc(m.date)+'</p><span class="badge '+s.c+'">'+s.t+'</span></div><div class="acts"><button class="act renew" data-a="renew" data-id="'+Number(m.id)+'">'+(m.type==='Yearly'?'+1 Year':'+1 Month')+'</button><button class="act" data-a="edit" data-id="'+Number(m.id)+'">Edit</button><button class="act del" data-a="del" data-id="'+Number(m.id)+'">Delete</button></div></div>'}).join('');
+}
+$('exportBtn').onclick=async function(){
+  var data=JSON.stringify(members,null,2),name='taj_members_backup_'+fmt(new Date())+'.json';
+  try{
+    var dl=window.claude&&await window.claude.use('downloads');
+    if(dl){await dl.save({filename:name,data:data});return}
+  }catch(e){if(e&&e.code==='declined')return}
+  try{
+    var u=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=document.createElement('a');
+    a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},1000);
+  }catch(e){prompt('Copy this backup text and save it somewhere safe:',data)}
+};
+$('importBtn').onclick=function(){$('importFile').click()};
+$('importFile').onchange=function(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    try{
+      var d=JSON.parse(ev.target.result);
+      if(!Array.isArray(d)||!d.every(valid))throw 0;
+      ask('Replace your current '+members.length+' members with '+d.length+' from this backup?','Replace',function(){
+        members=d.map(function(m,i){return{id:m.id||Date.now()+i,name:m.name,phone:m.phone||'',type:m.type||'Monthly',date:m.date}});
+        persist();toast('Backup imported');
+      });
+    }catch(x){toast('Invalid backup file.')}
+  };
+  r.readAsText(f);e.target.value='';
+};
+if(configured)members=[];
+render();setMode();
+if(configured&&window.firebase){
+  firebase.initializeApp(FIREBASE_CONFIG);
+  var auth=firebase.auth(),fs=firebase.firestore(),unsub=null;
+  $('login').classList.add('on');
+  $('loginBtn').onclick=function(){
+    $('loginErr').textContent='';
+    auth.signInWithEmailAndPassword($('lEmail').value.trim(),$('lPass').value).catch(function(){$('loginErr').textContent='Wrong email or password.'});
+  };
+  $('outBtn').onclick=function(){auth.signOut()};
+  auth.onAuthStateChanged(function(u){
+    if(!u){if(unsub)unsub();unsub=null;col=null;last={};members=[];render();$('login').classList.add('on');$('outBtn').style.display='none';$('lPass').value='';setMode();return}
+    $('login').classList.remove('on');$('outBtn').style.display='block';
+    var c=fs.collection('members');
+    unsub=c.onSnapshot(function(sn){
+      var remote=sn.docs.map(function(d){return d.data()}).filter(valid);
+      col=c;last={};remote.forEach(function(m){last[m.id]=norm(m)});
+      members=remote;render();setMode();
+    },function(){toast('Connection problem. Check internet.')});
+  });
+}
+</script>
+</body>
+</html>
